@@ -331,31 +331,14 @@ public class ImageFragment extends Fragment {
     }
 
     private void shareImageBitmap(Bitmap bitmap, Context context) {
-        Intent sendIntent = new Intent();
-        sendIntent.setAction(Intent.ACTION_SEND);
-        sendIntent.putExtra(Intent.EXTRA_TEXT, photoEntity.getLandscape());
-        sendIntent.setType("text/plain");
-        Intent shareIntent = Intent.createChooser(sendIntent, null);
-        startActivity(shareIntent);
-
         Intent intent = new Intent(Intent.ACTION_SEND).setType("image/*");
-
         Uri uri = bitmapToUri(bitmap, context);
-
-        // putting uri of image to be shared
         intent.putExtra(Intent.EXTRA_STREAM, uri);
-
-        // adding text to share
         intent.putExtra(
                 Intent.EXTRA_TEXT,
                 "Amazing wallpaper for your device\nPowered by Team #34"
         );
-
-        // Add subject Here
         intent.putExtra(Intent.EXTRA_SUBJECT, "Subject Here");
-
-
-        // calling startActivity() to share
         context.startActivity(Intent.createChooser(intent, "Share Via"));
     }
 
