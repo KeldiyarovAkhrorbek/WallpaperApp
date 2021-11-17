@@ -4,6 +4,7 @@ import static android.content.Context.DOWNLOAD_SERVICE;
 
 import android.app.DownloadManager;
 import android.app.WallpaperManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -13,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -177,12 +179,25 @@ public class ImageFragment extends Fragment {
 
 
         binding.iconShare.setOnClickListener(v -> {
-            Intent sendIntent = new Intent();
-            sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_TEXT, photoEntity.getLandscape());
-            sendIntent.setType("text/plain");
-            Intent shareIntent = Intent.createChooser(sendIntent, null);
-            startActivity(shareIntent);
+            final Bitmap[] result = {null};
+            Picasso.get().load(photoEntity.getLandscape()).into(new Target() {
+                @Override
+                public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                    result[0] = bitmap;
+                }
+
+                @Override
+                public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+                    Toast.makeText(requireContext(), "There was problem loading the photo!", Toast.LENGTH_SHORT).show();
+                    binding.progress.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onPrepareLoad(Drawable placeHolderDrawable) {
+                    binding.progress.setVisibility(View.VISIBLE);
+                }
+            });
+            shareImageBitmap(result[0], requireContext());
         });
 
         binding.iconAbout.setOnClickListener(v -> {
@@ -313,6 +328,39 @@ public class ImageFragment extends Fragment {
 
 
         return binding.getRoot();
+    }
+
+    private void shareImageBitmap(Bitmap bitmap, Context context) {
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, photoEntity.getLandscape());
+        sendIntent.setType("text/plain");
+        Intent shareIntent = Intent.createChooser(sendIntent, null);
+        startActivity(shareIntent);
+
+        Intent intent = new Intent(Intent.ACTION_SEND).setType("image/*");
+
+        Uri uri = bitmapToUri(bitmap, context);
+
+        // putting uri of image to be shared
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+
+        // adding text to share
+        intent.putExtra(
+                Intent.EXTRA_TEXT,
+                "Amazing wallpaper for your device\nPowered by Team #34"
+        );
+
+        // Add subject Here
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Subject Here");
+
+
+        // calling startActivity() to share
+        context.startActivity(Intent.createChooser(intent, "Share Via"));
+    }
+
+    private Uri bitmapToUri(Bitmap bitmap, Context context) {
+        return Uri.parse(MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, "image", null));
     }
 
     @Override
