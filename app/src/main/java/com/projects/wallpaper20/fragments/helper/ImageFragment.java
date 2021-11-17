@@ -197,7 +197,7 @@ public class ImageFragment extends Fragment {
                     binding.progress.setVisibility(View.VISIBLE);
                 }
             });
-            shareImageBitmap(result[0], requireContext());
+            shareImageBitmap(result[0], requireContext(), photoEntity.getLandscape());
         });
 
         binding.iconAbout.setOnClickListener(v -> {
@@ -330,13 +330,13 @@ public class ImageFragment extends Fragment {
         return binding.getRoot();
     }
 
-    private void shareImageBitmap(Bitmap bitmap, Context context) {
+    private void shareImageBitmap(Bitmap bitmap, Context context, String urlImage) {
         Intent intent = new Intent(Intent.ACTION_SEND).setType("image/*");
         Uri uri = bitmapToUri(bitmap, context);
         intent.putExtra(Intent.EXTRA_STREAM, uri);
         intent.putExtra(
                 Intent.EXTRA_TEXT,
-                "Amazing wallpaper for your device\nPowered by Team #34"
+                "Amazing wallpaper for your device\nPowered by Team #34\nLink: " + urlImage
         );
         intent.putExtra(Intent.EXTRA_SUBJECT, "Subject Here");
         context.startActivity(Intent.createChooser(intent, "Share Via"));
